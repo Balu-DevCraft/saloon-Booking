@@ -1,0 +1,148 @@
+.stylist-selection {
+  padding: 2rem;
+}
+
+.section-title {
+  color: #2c3e50;
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.stylists-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.stylist-card {
+  background: #fff;
+  border: 2px solid #e1e1e1;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.stylist-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-color: #3498db;
+}
+
+.stylist-card.selected {
+  border-color: #3498db;
+  background: #ebf5ff;
+}
+
+.stylist-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stylist-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.default-avatar {
+  font-size: 2rem;
+  color: #95a5a6;
+}
+
+.stylist-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stylist-info h4 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.specializations,
+.work-history,
+.availability,
+.experience-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.icon {
+  color: #3498db;
+  flex-shrink: 0;
+}
+
+.experience-rating {
+  margin-top: 0.5rem;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.experience-rating .icon {
+  color: #f1c40f;
+}
+
+.no-stylists {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  color: #666;
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.alert-info {
+  background-color: #e3f2fd;
+  color: #0d47a1;
+  border: 1px solid #bbdefb;
+}
+
+.alert-danger {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+}
+
+@media (max-width: 480px) {
+  .stylist-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .stylist-image {
+    width: 100px;
+    height: 100px;
+  }
+
+  .specializations,
+  .work-history,
+  .availability,
+  .experience-rating {
+    justify-content: center;
+  }
+} 

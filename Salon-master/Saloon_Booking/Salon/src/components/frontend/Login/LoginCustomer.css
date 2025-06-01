@@ -1,0 +1,23 @@
+.login-split-page {
+  background-color: #f8f9fa;
+}
+
+.left-section {
+  width: 50%;
+  background: linear-gradient(to bottom right,  #e5e3e3,#171717);
+  color: white;
+}
+
+.right-section {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .right-section {
+    width: 50%;
+  }
+}
+
+.login-form-card {
+  min-width: 300px;
+}

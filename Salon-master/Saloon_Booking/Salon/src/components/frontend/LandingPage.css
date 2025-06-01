@@ -1,0 +1,34 @@
+.landing-page {
+    min-height: 100vh;
+    background: linear-gradient(to right, #f8f9fa, #e0e0e0);
+    font-family: 'Segoe UI', sans-serif;
+  }
+  
+  .left-content {
+    max-width: 600px;
+  }
+
+  .navbar-brand {
+    letter-spacing: 1px;
+  }
+
+  .right-image {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  img {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  @media (max-width: 768px) {
+    .navbar .btn {
+      width: 100%;
+    }
+  }
+
+  
+
+  
+ 
+  

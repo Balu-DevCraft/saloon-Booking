@@ -1,0 +1,97 @@
+Overall container
+.register-salon-container {
+    display: flex;
+    min-height: 100vh;
+  }
+  /* Left Section - Gradient Background */
+  .left-section {
+    width: 70%;
+    background: linear-gradient(to bottom right, #171717, #e5e3e3);
+    color: white;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  
+  /* Right Section */
+  .right-section {
+    width: 60%;
+    padding: 40px 30px;
+    background-color: #f8f9fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Register form box */
+  .register-form {
+    width: 100%;
+    max-width: 500px;
+    background-color: #ffffff;
+    border-radius: 10px;
+  }
+  
+  /* Inputs */
+  input.form-control,
+  select.form-select {
+    border: 1px solid #ced4da;
+    box-shadow: none;
+    transition: border-color 0.3s ease;
+  }
+  
+  input.form-control:focus,
+  select.form-select:focus {
+    border-color: #52d3e4;
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(82, 211, 228, 0.25);
+  }
+  
+  /* Buttons */
+  button.btn-primary {
+    background-color: #52d3e4;
+    border-color: #52d3e4;
+  }
+  
+  button.btn-primary:hover {
+    background-color: #3ac7d4;
+    border-color: #3ac7d4;
+  }
+  
+  /* Alert message */
+  .alert {
+    margin-top: 10px;
+    padding: 10px;
+    font-size: 14px;
+  }
+  
+  /* Responsive Map */
+  .leaflet-container {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+  }
+  
+  /* Navigation link */
+  .text-decoration-underline {
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  /* Custom responsive tweaks */
+  @media (max-width: 768px) {
+    .register-salon-container {
+      flex-direction: column;
+    }
+  
+    .left-section,
+    .right-section {
+      width: 100%;
+    }
+  
+    .right-section {
+      padding: 30px 20px;
+    }
+  }
+  
