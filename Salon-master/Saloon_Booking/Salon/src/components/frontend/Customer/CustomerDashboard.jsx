@@ -155,7 +155,7 @@ const CustomerDashboard = () => {
             {saloons.map((saloon) => (
               <div key={saloon._id} className="saloon-card">
                 <div className="saloon-image">
-                  <img src={`https://source.unsplash.com/400x300/?salon,haircut&${saloon._id}`} alt={saloon.name} />
+                  {/* <img src={`https://source.unsplash.com/400x300/?salon,haircut&${saloon._id}`} alt={saloon.name} /> */}
                 </div>
                 <div className="saloon-info">
                   <h3>{saloon.name}</h3>

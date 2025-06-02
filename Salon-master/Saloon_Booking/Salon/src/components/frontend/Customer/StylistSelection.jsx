@@ -18,29 +18,63 @@ const StylistSelection = ({ salonId, onStylistSelect, selectedService }) => {
           throw new Error('No authentication token found');
         }
 
+        console.log('Fetching stylists for salon:', salonId);
+        console.log('Token:', token);
+
+        // Convert salonId to string if it's an object
+        const salonIdStr = typeof salonId === 'object' ? salonId.toString() : salonId;
+        
+        const params = {
+          page: 1,
+          limit: 100,
+          isActive: true,
+          saloonId: salonIdStr
+        };
+        
+        console.log('Request params:', params);
+        
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         const response = await axios.get(`http://localhost:8080/saloon/get-saloon-employees`, {
-          params: {
-            saloonId: salonId,
-            isActive: true
-          }
+          params: params
         });
+
+        console.log('Stylists API full response:', response);
+        console.log('Response headers:', response.headers);
+        console.log('Response status:', response.status);
+        console.log('Stylists API response data:', response.data);
 
         if (response.data && response.data.data) {
           const stylistsData = response.data.data;
+          console.log('Received stylists:', stylistsData);
+          if (stylistsData.length === 0) {
+            console.log('No stylists found for salon:', salonId);
+          }
           setStylists(stylistsData);
           filterStylistsByService(stylistsData, selectedService);
+        } else {
+          console.log('No stylists data in response:', response.data);
         }
         setError('');
       } catch (err) {
         console.error('Error fetching stylists:', err);
+        console.error('Error details:', {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status,
+          headers: err.response?.headers
+        });
         setError(err.response?.data?.message || 'Failed to load stylists. Please try again.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchStylists();
+    if (salonId) {
+      fetchStylists();
+    } else {
+      setError('No salon ID provided');
+      setLoading(false);
+    }
   }, [salonId, selectedService]);
 
   useEffect(() => {

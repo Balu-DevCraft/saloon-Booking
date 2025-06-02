@@ -40,6 +40,10 @@ let User = class User {
     updatedBy;
     firebaseToken;
     isDeleted;
+    specialization;
+    workHistory;
+    openingTimes;
+    image;
 };
 exports.User = User;
 __decorate([
@@ -112,6 +116,22 @@ __decorate([
     (0, mongoose_1.Prop)({ type: Boolean, default: false, select: false }),
     __metadata("design:type", Boolean)
 ], User.prototype, "isDeleted", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: [String], default: [] }),
+    __metadata("design:type", Array)
+], User.prototype, "specialization", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], User.prototype, "workHistory", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], User.prototype, "openingTimes", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: String }),
+    __metadata("design:type", String)
+], User.prototype, "image", void 0);
 exports.User = User = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
 ], User);

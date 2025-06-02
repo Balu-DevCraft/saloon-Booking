@@ -90,6 +90,18 @@ export class User {
 
     @Prop({ type: Boolean, default: false, select: false })
     isDeleted: boolean;
+
+    @Prop({ type: [String], default: [] })
+    specialization: string[];
+
+    @Prop()
+    workHistory: string;
+
+    @Prop()
+    openingTimes: string;
+
+    @Prop({ type: String })
+    image: string; // Base64 encoded image data
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

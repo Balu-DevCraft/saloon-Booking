@@ -180,22 +180,45 @@ export class SaloonService {
             const user: any = await this.userModel.findById(userId);
             if (!user) throw new BadRequestException('User not found');
             if (!user.isActive) throw new BadRequestException('User is not active');
-            // Create the new employee
-            const newEmployee = await this.userModel.create({
-                ...addSaloonEmployeeDto,
-                userType: UserType.EMPLOYEE,
-                saloonId: new Types.ObjectId(user.saloonId), // Assign the saloon ID from the user
-                isActive: true
 
+            // Validate required fields
+            if (!addSaloonEmployeeDto.name || !addSaloonEmployeeDto.email || !addSaloonEmployeeDto.password) {
+                throw new BadRequestException('Name, email, and password are required');
+            }
+
+            // Check if email already exists
+            const existingUser = await this.userModel.findOne({ email: addSaloonEmployeeDto.email.toLowerCase() });
+            if (existingUser) {
+                throw new BadRequestException('Email already exists');
+            }
+
+            // Create the new employee with base64 image data
+            const newEmployee = await this.userModel.create({
+                name: addSaloonEmployeeDto.name,
+                email: addSaloonEmployeeDto.email.toLowerCase(),
+                password: addSaloonEmployeeDto.password,
+                userType: UserType.EMPLOYEE,
+                saloonId: new Types.ObjectId(user.saloonId),
+                specialization: addSaloonEmployeeDto.specialization || [],
+                workHistory: addSaloonEmployeeDto.workHistory,
+                openingTimes: addSaloonEmployeeDto.openingTimes,
+                image: addSaloonEmployeeDto.image, // Store base64 image data directly
+                isActive: true
             });
+
+            // Remove password from response
+            const employeeResponse = newEmployee.toObject();
+            delete employeeResponse.password;
 
             return {
                 message: 'Employee added successfully',
-                data: newEmployee
+                data: employeeResponse
             };
         } catch (error) {
-            throw new Error(error);
-
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new BadRequestException(error.message);
         }
     }
 
@@ -205,28 +228,64 @@ export class SaloonService {
             const user: any = await this.userModel.findById(userId);
             if (!user) throw new BadRequestException('User not found');
             if (!user.isActive) throw new BadRequestException('User is not active');
-            const filter: any = {};
-            filter['saloonId'] = user.saloonId;
-            if (!user.saloonId) {
-                filter['saloonId'] = paginationDto.saloonId;
+
+            console.log('Getting employees for user:', {
+                userId,
+                userSaloonId: user.saloonId,
+                paginationSaloonId: paginationDto.saloonId
+            });
+
+            const filter: any = {
+                userType: UserType.EMPLOYEE
+            };
+
+            // Set saloonId filter
+            const targetSaloonId = user.saloonId || paginationDto.saloonId;
+            if (!targetSaloonId) {
+                throw new BadRequestException('Salon ID is required');
             }
+
+            // Ensure saloonId is a valid ObjectId
+            if (!Types.ObjectId.isValid(targetSaloonId)) {
+                throw new BadRequestException('Invalid Salon ID format');
+            }
+
+            filter.saloonId = new Types.ObjectId(targetSaloonId);
+
+            // Handle isActive filter if provided
             if (paginationDto.isActive !== undefined) {
-                filter['isActive'] = paginationDto.isActive; // Filter by isActive status
+                filter.isActive = paginationDto.isActive;
             }
+
+            console.log('Employee search filter:', filter);
 
             const skip = (page - 1) * limit;
             const employees = await this.userModel.find(filter)
+                .select('-password -refreshToken -otp')
                 .skip(skip)
                 .limit(limit)
                 .lean();
+
+            console.log(`Found ${employees.length} employees`);
+
+            const total = await this.userModel.countDocuments(filter);
+
             return {
                 message: 'Employees fetched successfully',
-                data: employees
-            }
-
+                data: employees,
+                pagination: {
+                    total,
+                    page,
+                    limit,
+                    pages: Math.ceil(total / limit)
+                }
+            };
         } catch (error) {
-            throw new Error(error);
-
+            console.error('Error in getAllEmployees:', error);
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new BadRequestException(error.message);
         }
     }
 
@@ -389,25 +448,52 @@ export class SaloonService {
 
     async getSalonReviews(salonId: string) {
         try {
+            if (!salonId) {
+                throw new BadRequestException('Salon ID is required');
+            }
+
+            // Validate salonId format
+            if (!/^[0-9a-fA-F]{24}$/.test(salonId)) {
+                throw new BadRequestException('Invalid salon ID format');
+            }
+
+            console.log('Fetching reviews for salon:', salonId);
+
             const reviews = await this.reviewModel.find({
                 saloonId: new Types.ObjectId(salonId)
             })
-            .populate('userId', 'name')
-            .populate('stylistId', 'name')
+            .populate<{ userId: { name: string } }>('userId', 'name')
+            .populate<{ stylistId: { name: string } }>('stylistId', 'name')
             .sort({ createdAt: -1 });
 
+            console.log('Found reviews:', reviews.length);
+
             // Transform reviews to include customerName and stylistName
-            const transformedReviews = reviews.map(review => ({
-                ...review.toObject(),
-                customerName: review.userId['name'],
-                stylistName: review.stylistId['name']
-            }));
+            const transformedReviews = reviews.map(review => {
+                const transformed = {
+                    ...review.toObject(),
+                    customerName: review.userId?.name || 'Anonymous',
+                    stylistName: review.stylistId?.name || 'Unknown'
+                };
+                console.log('Transformed review:', transformed);
+                return transformed;
+            });
 
             return {
                 message: 'Reviews fetched successfully',
                 data: transformedReviews
             };
         } catch (error) {
+            console.error('Error in getSalonReviews:', {
+                salonId,
+                error: error.message,
+                stack: error.stack
+            });
+            
+            if (error.name === 'BSONTypeError' || error.name === 'CastError') {
+                throw new BadRequestException('Invalid salon ID format');
+            }
+            
             throw new BadRequestException(error.message);
         }
     }

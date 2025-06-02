@@ -215,7 +215,6 @@ __decorate([
 __decorate([
     (0, common_1.UseGuards)(access_token_guard_1.AccessTokenGuard),
     (0, common_1.Get)('get-salon-reviews/:salonId'),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Param)('salonId')),
     __metadata("design:type", Function),

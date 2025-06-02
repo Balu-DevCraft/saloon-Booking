@@ -40,7 +40,11 @@ const RegisterSalon = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const setLatLng = ([lat, lng]) => {
-    setFormData({ ...formData, lat, lng });
+    setFormData({ 
+      ...formData, 
+      lat: lat.toString(), 
+      lng: lng.toString() 
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -59,10 +63,8 @@ const RegisterSalon = () => {
         password: formData.password,
         city: formData.city,
         place: formData.place,
-        coordinates: {
-          lat: formData.lat,
-          lng: formData.lng
-        }
+        latitude: formData.lat,
+        longitude: formData.lng
       });
 
       if (response.data) {

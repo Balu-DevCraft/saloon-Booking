@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./StylistDashboard.css";
-import { FaCalendarAlt, FaCheckCircle, FaTimesCircle, FaSignOutAlt, FaStar } from 'react-icons/fa';
+import { FaCalendarAlt, FaCheckCircle, FaTimesCircle, FaSignOutAlt, FaStar, FaUser } from 'react-icons/fa';
 import StylistReviewsDisplay from './StylistReviewsDisplay';
 
 const StylistDashboard = () => {
@@ -11,6 +11,7 @@ const StylistDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showReviews, setShowReviews] = useState(false);
+  const [stylistData, setStylistData] = useState(null);
   const [stats, setStats] = useState({
     totalBookings: 0,
     pendingBookings: 0,
@@ -31,6 +32,21 @@ const StylistDashboard = () => {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     console.log('Axios headers set:', axios.defaults.headers.common);
 
+    const fetchStylistData = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/auth/me');
+        if (response.data && response.data.data) {
+          setStylistData(response.data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching stylist data:", err);
+        if (err.response?.status === 401) {
+          navigate('/login/professional');
+        }
+      }
+    };
+
+    fetchStylistData();
     fetchBookings();
   }, [navigate]);
 
@@ -141,15 +157,20 @@ const StylistDashboard = () => {
       <nav className="dashboard-nav">
         <div className="nav-content">
           <span className="brand">CutAbout Stylist</span>
-          <button onClick={handleLogout} className="logout-btn">
-            <FaSignOutAlt /> Logout
-          </button>
+          <div className="nav-user">
+            <span className="stylist-name">
+              <FaUser /> {stylistData?.name || 'Loading...'}
+            </span>
+            <button onClick={handleLogout} className="logout-btn">
+              <FaSignOutAlt /> Logout
+            </button>
+          </div>
         </div>
       </nav>
 
       <main className="dashboard-main">
         <div className="dashboard-header">
-          <h1>Stylist Dashboard</h1>
+          <h1>Welcome, {stylistData?.name || 'Stylist'}</h1>
           <p>Manage your bookings and schedule</p>
         </div>
 

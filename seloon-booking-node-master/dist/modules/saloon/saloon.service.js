@@ -164,19 +164,37 @@ let SaloonService = class SaloonService {
                 throw new common_1.BadRequestException('User not found');
             if (!user.isActive)
                 throw new common_1.BadRequestException('User is not active');
+            if (!addSaloonEmployeeDto.name || !addSaloonEmployeeDto.email || !addSaloonEmployeeDto.password) {
+                throw new common_1.BadRequestException('Name, email, and password are required');
+            }
+            const existingUser = await this.userModel.findOne({ email: addSaloonEmployeeDto.email.toLowerCase() });
+            if (existingUser) {
+                throw new common_1.BadRequestException('Email already exists');
+            }
             const newEmployee = await this.userModel.create({
-                ...addSaloonEmployeeDto,
+                name: addSaloonEmployeeDto.name,
+                email: addSaloonEmployeeDto.email.toLowerCase(),
+                password: addSaloonEmployeeDto.password,
                 userType: user_schema_1.UserType.EMPLOYEE,
                 saloonId: new mongoose_2.Types.ObjectId(user.saloonId),
+                specialization: addSaloonEmployeeDto.specialization || [],
+                workHistory: addSaloonEmployeeDto.workHistory,
+                openingTimes: addSaloonEmployeeDto.openingTimes,
+                image: addSaloonEmployeeDto.image,
                 isActive: true
             });
+            const employeeResponse = newEmployee.toObject();
+            delete employeeResponse.password;
             return {
                 message: 'Employee added successfully',
-                data: newEmployee
+                data: employeeResponse
             };
         }
         catch (error) {
-            throw new Error(error);
+            if (error instanceof common_1.BadRequestException) {
+                throw error;
+            }
+            throw new common_1.BadRequestException(error.message);
         }
     }
     async getAllEmployees(userId, paginationDto) {
@@ -187,26 +205,51 @@ let SaloonService = class SaloonService {
                 throw new common_1.BadRequestException('User not found');
             if (!user.isActive)
                 throw new common_1.BadRequestException('User is not active');
-            const filter = {};
-            filter['saloonId'] = user.saloonId;
-            if (!user.saloonId) {
-                filter['saloonId'] = paginationDto.saloonId;
+            console.log('Getting employees for user:', {
+                userId,
+                userSaloonId: user.saloonId,
+                paginationSaloonId: paginationDto.saloonId
+            });
+            const filter = {
+                userType: user_schema_1.UserType.EMPLOYEE
+            };
+            const targetSaloonId = user.saloonId || paginationDto.saloonId;
+            if (!targetSaloonId) {
+                throw new common_1.BadRequestException('Salon ID is required');
             }
+            if (!mongoose_2.Types.ObjectId.isValid(targetSaloonId)) {
+                throw new common_1.BadRequestException('Invalid Salon ID format');
+            }
+            filter.saloonId = new mongoose_2.Types.ObjectId(targetSaloonId);
             if (paginationDto.isActive !== undefined) {
-                filter['isActive'] = paginationDto.isActive;
+                filter.isActive = paginationDto.isActive;
             }
+            console.log('Employee search filter:', filter);
             const skip = (page - 1) * limit;
             const employees = await this.userModel.find(filter)
+                .select('-password -refreshToken -otp')
                 .skip(skip)
                 .limit(limit)
                 .lean();
+            console.log(`Found ${employees.length} employees`);
+            const total = await this.userModel.countDocuments(filter);
             return {
                 message: 'Employees fetched successfully',
-                data: employees
+                data: employees,
+                pagination: {
+                    total,
+                    page,
+                    limit,
+                    pages: Math.ceil(total / limit)
+                }
             };
         }
         catch (error) {
-            throw new Error(error);
+            console.error('Error in getAllEmployees:', error);
+            if (error instanceof common_1.BadRequestException) {
+                throw error;
+            }
+            throw new common_1.BadRequestException(error.message);
         }
     }
     async bookSaloon(userId, createBookSaloonDto) {
@@ -357,23 +400,43 @@ let SaloonService = class SaloonService {
     }
     async getSalonReviews(salonId) {
         try {
+            if (!salonId) {
+                throw new common_1.BadRequestException('Salon ID is required');
+            }
+            if (!/^[0-9a-fA-F]{24}$/.test(salonId)) {
+                throw new common_1.BadRequestException('Invalid salon ID format');
+            }
+            console.log('Fetching reviews for salon:', salonId);
             const reviews = await this.reviewModel.find({
                 saloonId: new mongoose_2.Types.ObjectId(salonId)
             })
                 .populate('userId', 'name')
                 .populate('stylistId', 'name')
                 .sort({ createdAt: -1 });
-            const transformedReviews = reviews.map(review => ({
-                ...review.toObject(),
-                customerName: review.userId['name'],
-                stylistName: review.stylistId['name']
-            }));
+            console.log('Found reviews:', reviews.length);
+            const transformedReviews = reviews.map(review => {
+                const transformed = {
+                    ...review.toObject(),
+                    customerName: review.userId?.name || 'Anonymous',
+                    stylistName: review.stylistId?.name || 'Unknown'
+                };
+                console.log('Transformed review:', transformed);
+                return transformed;
+            });
             return {
                 message: 'Reviews fetched successfully',
                 data: transformedReviews
             };
         }
         catch (error) {
+            console.error('Error in getSalonReviews:', {
+                salonId,
+                error: error.message,
+                stack: error.stack
+            });
+            if (error.name === 'BSONTypeError' || error.name === 'CastError') {
+                throw new common_1.BadRequestException('Invalid salon ID format');
+            }
             throw new common_1.BadRequestException(error.message);
         }
     }

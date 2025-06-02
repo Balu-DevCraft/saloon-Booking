@@ -320,7 +320,7 @@ const BookSalon = () => {
           <div className="salon-details">
             <div className="salon-header">
               <div className="salon-image">
-                <img src={`https://source.unsplash.com/800x400/?salon,haircut&${salon._id}`} alt={salon.name} />
+                {/* <img src={`https://source.unsplash.com/800x400/?salon,haircut&${salon._id}`} alt={salon.name} /> */}
               </div>
               <div className="salon-info">
                 <h2>{salon.name}</h2>

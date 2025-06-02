@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios';
 import "./SalonAdmin.css";
-import { FaUserPlus, FaEdit, FaTrash, FaSignOutAlt, FaCalendarAlt, FaUsers, FaMoneyBillWave, FaClock, FaEnvelope, FaCut, FaCheckCircle, FaTimesCircle, FaPhone, FaStar } from 'react-icons/fa';
+import { FaUserPlus, FaEdit, FaTrash, FaSignOutAlt, FaCalendarAlt, FaUsers, FaMoneyBillWave, FaClock, FaEnvelope, FaCut, FaCheckCircle, FaTimesCircle, FaPhone, FaStar, FaSync } from 'react-icons/fa';
 import ReviewsDisplay from './ReviewsDisplay';
 
 const availableSpecializations = ["Haircut", "Facial", "Coloring", "Spa", "Makeup"];
@@ -21,6 +21,8 @@ const SalonAdminDashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [showReviews, setShowReviews] = useState(false);
   const [salonId, setSalonId] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const [salonData, setSalonData] = useState(null);
   
   const [stylistForm, setStylistForm] = useState({
     name: "",
@@ -36,106 +38,98 @@ const SalonAdminDashboard = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    console.log('Current token:', token);
+    const storedUserData = localStorage.getItem('userData');
     
     if (!token) {
-      console.log('No token found, redirecting to login');
       navigate('/login/professional');
       return;
     }
-    
+
+    if (storedUserData) {
+      setUserData(JSON.parse(storedUserData));
+    }
+
     // Set up axios defaults
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    console.log('Axios headers set:', axios.defaults.headers.common);
     
     // Load initial data
-    fetchDashboardData();
+    fetchUserAndDashboardData();
   }, [navigate]);
 
-  const fetchDashboardData = async () => {
+  const fetchUserAndDashboardData = async () => {
     try {
       setLoading(true);
-      console.log('Fetching dashboard data...');
       
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.log('No token found, redirecting to login');
-        navigate('/login/professional');
-        return;
-      }
-
-      // Set up axios defaults
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
-      // First, get the salon ID from the user profile
+      // Fetch user profile
       const userResponse = await axios.get('http://localhost:8080/auth/me');
-      console.log('User profile response:', userResponse.data);
-      
-      if (userResponse.data && userResponse.data.data && userResponse.data.data.saloonId) {
-        const userSalonId = userResponse.data.data.saloonId;
-        setSalonId(userSalonId);
-        console.log('Salon ID set:', userSalonId);
-
-        // Fetch employees (stylists)
-        const employeesResponse = await axios.get('http://localhost:8080/saloon/get-saloon-employees', {
-          params: {
-            page: 1,
-            limit: 100,
-            isActive: true,
-            saloonId: userSalonId
-          }
+      if (userResponse.data?.data) {
+        const user = userResponse.data.data;
+        console.log('SalonAdminDashboard: User data received:', { 
+          userId: user._id,
+          saloonId: user.saloonId,
+          name: user.name 
         });
-        
-        console.log('Employees response:', employeesResponse.data);
-        
-        if (employeesResponse.data && employeesResponse.data.data) {
-          setStylists(employeesResponse.data.data);
-        }
+        setUserData(user);
+        localStorage.setItem('userData', JSON.stringify(user));
+        setSalonId(user.saloonId);
 
-        // Fetch bookings
-        const bookingsResponse = await axios.get('http://localhost:8080/saloon/get-saloon-bookings-employees', {
-          params: {
-            page: 1,
-            limit: 100
+        // Fetch salon details
+        if (user.saloonId) {
+          console.log('SalonAdminDashboard: Fetching salon details for ID:', user.saloonId);
+          const salonResponse = await axios.get(`http://localhost:8080/saloon/get-salon/${user.saloonId}`);
+          if (salonResponse.data?.data) {
+            console.log('SalonAdminDashboard: Salon details received:', salonResponse.data.data);
+            setSalonData(salonResponse.data.data);
           }
-        });
 
-        console.log('Bookings response:', bookingsResponse.data);
-
-        if (bookingsResponse.data && bookingsResponse.data.data) {
-          const bookingsData = bookingsResponse.data.data;
-          setBookings(bookingsData);
-
-          // Calculate statistics
-          const totalBookings = bookingsData.length;
-          const totalStylists = employeesResponse.data.data.length;
-          const totalRevenue = bookingsData.reduce((sum, booking) => {
-            const basePrice = {
-              'Haircut': 500,
-              'Hair Coloring': 2000,
-              'Facial': 1500,
-              'Styling': 800,
-              'Beard Trim': 300
-            };
-            return sum + (basePrice[booking.service] || 0);
-          }, 0);
-
-          setStats({
-            totalBookings,
-            totalStylists,
-            totalRevenue
+          // Fetch employees data - only if we have salon ID
+          const employeesResponse = await axios.get('http://localhost:8080/saloon/get-saloon-employees', {
+            params: {
+              page: 1,
+              limit: 100,
+              isActive: true,
+              saloonId: user.saloonId
+            }
           });
+
+          if (employeesResponse.data?.data) {
+            setStylists(employeesResponse.data.data);
+          }
+
+          // Fetch bookings - only if we have salon ID
+          const bookingsResponse = await axios.get('http://localhost:8080/saloon/get-saloon-bookings-employees', {
+            params: {
+              page: 1,
+              limit: 100,
+              saloonId: user.saloonId
+              
+              
+            }
+           
+            
+          });
+          console.log("salonId",user.saloonId);
+
+          if (bookingsResponse.data?.data) {
+            const bookingsData = bookingsResponse.data.data;
+            setBookings(bookingsData);
+
+            // Calculate statistics
+            setStats({
+              totalBookings: bookingsData.length,
+              totalStylists: employeesResponse.data.data?.length || 0,
+              totalRevenue: calculateTotalRevenue(bookingsData)
+            });
+          }
+        } else {
+          setError("No salon ID found. Please contact support.");
         }
-      } else {
-        console.error('User profile response:', userResponse.data);
-        throw new Error('Could not get salon ID from user profile');
       }
-      
+
       setError("");
     } catch (err) {
-      console.error("Error fetching dashboard data:", err);
-      console.log('Error response:', err.response);
-      setError(err.response?.data?.message || "Failed to load dashboard data. Please try again.");
+      console.error("Error fetching data:", err);
+      setError(err.response?.data?.message || "Failed to load dashboard data");
       if (err.response?.status === 401) {
         navigate('/login/professional');
       }
@@ -168,8 +162,7 @@ const SalonAdminDashboard = () => {
       
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64String = reader.result;
-        console.log("Image loaded:", base64String.substring(0, 50) + "..."); // Log first 50 chars
+        const base64String = reader.result.split(',')[1]; // Remove data:image/xyz;base64, prefix
         setStylistForm(prev => ({ ...prev, image: base64String }));
       };
       reader.onerror = () => {
@@ -192,12 +185,19 @@ const SalonAdminDashboard = () => {
         return;
       }
 
+      // Validate required fields
+      if (!stylistForm.name || !stylistForm.email || (!editingIndex && !stylistForm.password)) {
+        setError("Please fill in all required fields");
+        setLoading(false);
+        return;
+      }
+
       const formData = {
-        name: stylistForm.name,
-        email: stylistForm.email,
-        specialization: stylistForm.specialization,
-        workHistory: stylistForm.workHistory,
-        openingTimes: stylistForm.openingTimes,
+        name: stylistForm.name.trim(),
+        email: stylistForm.email.trim(),
+        specialization: stylistForm.specialization || [],
+        workHistory: stylistForm.workHistory?.trim(),
+        openingTimes: stylistForm.openingTimes?.trim(),
         isActive: true
       };
 
@@ -206,10 +206,9 @@ const SalonAdminDashboard = () => {
         formData.password = stylistForm.password;
       }
 
-      // Always include image in formData if it exists in stylistForm
+      // Add image if it exists
       if (stylistForm.image) {
         formData.image = stylistForm.image;
-        console.log("Sending image data:", stylistForm.image.substring(0, 50) + "..."); // Log first 50 chars
       }
 
       let response;
@@ -233,7 +232,6 @@ const SalonAdminDashboard = () => {
             ...response.data.data
           };
           setStylists(updatedStylists);
-          console.log("Updated stylist data:", response.data.data);
         }
       } else {
         // Add new stylist
@@ -250,7 +248,6 @@ const SalonAdminDashboard = () => {
 
         if (response.data && response.data.data) {
           setStylists([...stylists, response.data.data]);
-          console.log("Added new stylist data:", response.data.data);
         }
       }
 
@@ -267,8 +264,8 @@ const SalonAdminDashboard = () => {
       setEditingIndex(null);
       setShowForm(false);
 
-      // Refresh the dashboard data to ensure we have the latest images
-      await fetchDashboardData();
+      // Refresh the dashboard data
+      await fetchUserAndDashboardData();
 
     } catch (err) {
       console.error("Error saving stylist:", err);
@@ -334,12 +331,8 @@ const SalonAdminDashboard = () => {
     // If the image is already a URL, return it
     if (imageData.startsWith('http')) return imageData;
     
-    // If it's base64 data and doesn't start with data:image, add the prefix
-    if (!imageData.startsWith('data:image')) {
-      return `data:image/jpeg;base64,${imageData}`;
-    }
-    
-    return imageData;
+    // If it's base64 data, add the prefix
+    return `data:image/jpeg;base64,${imageData}`;
   };
 
   // Add this new function to format date
@@ -453,8 +446,24 @@ const SalonAdminDashboard = () => {
 
       <main className="admin-main">
         <div className="admin-header">
-          <h1>Salon Dashboard</h1>
-          <p>Manage your salon's stylists and view statistics</p>
+          {userData && (
+            <div className="welcome-section">
+              <h1>Welcome, {userData.name}! 👋</h1>
+              {/* {salonData && (
+                <p className="salon-info">
+                  Managing: {salonData.name} | Location: {salonData.city}, {salonData.place}
+                </p>
+              )} */}
+              <p className="last-login">
+                Last active: {new Date(userData.lastActiveAt || Date.now()).toLocaleString()}
+              </p>
+            </div>
+          )}
+          <div className="header-actions">
+            <button className="refresh-btn" onClick={fetchUserAndDashboardData}>
+              <FaSync /> Refresh Dashboard
+            </button>
+          </div>
         </div>
 
         {error && (

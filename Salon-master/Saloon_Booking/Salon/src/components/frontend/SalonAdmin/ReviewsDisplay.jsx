@@ -13,6 +13,7 @@ const ReviewsDisplay = ({ salonId }) => {
   useEffect(() => {
     const fetchReviews = async () => {
       if (!salonId) {
+        console.error('ReviewsDisplay: No salonId provided');
         setError('No salon ID provided');
         setLoading(false);
         return;
@@ -21,29 +22,64 @@ const ReviewsDisplay = ({ salonId }) => {
       try {
         setLoading(true);
         setError('');
-        console.log('Fetching reviews for salon:', salonId);
+        console.log('ReviewsDisplay: Fetching reviews for salon:', salonId);
         
         const token = localStorage.getItem('token');
         if (!token) {
+          console.error('ReviewsDisplay: No authentication token found');
           setError('Authentication token not found');
           setLoading(false);
           return;
         }
 
-        const response = await axios.get(`http://localhost:8080/saloon/get-salon-reviews/${salonId}`, {
+        // Validate salonId format
+        if (!/^[0-9a-fA-F]{24}$/.test(salonId)) {
+          console.error('ReviewsDisplay: Invalid salonId format:', salonId);
+          setError('Invalid salon ID format');
+          setLoading(false);
+          return;
+        }
+
+        // Log the request details
+        console.log('ReviewsDisplay: Making request with:', {
+          url: `http://localhost:8080/saloon/get-salon-reviews/${salonId}`,
           headers: { Authorization: `Bearer ${token}` }
         });
 
+        const response = await axios.get(`http://localhost:8080/saloon/get-salon-reviews/${salonId}`, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        console.log('ReviewsDisplay: Full API response:', response);
+
         if (response.data && response.data.data) {
-          console.log('Reviews fetched:', response.data.data);
+          console.log('ReviewsDisplay: Reviews fetched successfully:', response.data.data);
           setReviews(response.data.data);
         } else {
-          console.log('No reviews found in response');
+          console.log('ReviewsDisplay: No reviews found in response');
           setReviews([]);
         }
       } catch (err) {
-        console.error('Error fetching reviews:', err);
-        setError(err.response?.data?.message || 'Failed to load reviews. Please try again.');
+        console.error('ReviewsDisplay: Error details:', {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status,
+          statusText: err.response?.statusText
+        });
+        
+        let errorMessage = 'Failed to load reviews. Please try again.';
+        if (err.response?.data?.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.response?.status === 400) {
+          errorMessage = 'Invalid request. Please check the salon ID.';
+        } else if (err.response?.status === 401) {
+          errorMessage = 'Session expired. Please login again.';
+        }
+        
+        setError(errorMessage);
         setReviews([]);
       } finally {
         setLoading(false);

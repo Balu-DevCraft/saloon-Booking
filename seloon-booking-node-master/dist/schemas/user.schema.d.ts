@@ -25,6 +25,10 @@ export declare class User {
     updatedBy?: Types.ObjectId;
     firebaseToken?: string;
     isDeleted: boolean;
+    specialization: string[];
+    workHistory: string;
+    openingTimes: string;
+    image: string;
 }
 export declare const UserSchema: import("mongoose").Schema<User, import("mongoose").Model<User, any, any, any, import("mongoose").Document<unknown, any, User, any> & User & Required<{
     _id: string;
