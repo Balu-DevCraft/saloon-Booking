@@ -122,9 +122,20 @@ export declare class SaloonController {
         data: {
             customerName: string;
             stylistName: string;
-            createdAt: Date;
-            updatedAt: Date;
             _id: unknown;
+            saloonId: import("mongoose").Types.ObjectId;
+            id?: any;
+            set: {
+                <T extends string | number | symbol>(path: T, val: any, type: any, options?: import("mongoose").DocumentSetOptions): import("../../schemas/review.schema").Review;
+                (path: string | Record<string, any>, val: any, type: any, options?: import("mongoose").DocumentSetOptions): import("../../schemas/review.schema").Review;
+                (path: string | Record<string, any>, val: any, options?: import("mongoose").DocumentSetOptions): import("../../schemas/review.schema").Review;
+                (value: string | Record<string, any>): import("../../schemas/review.schema").Review;
+            };
+            get: {
+                <T extends string | number | symbol>(path: T, type?: any, options?: any): any;
+                (path: string, type?: any, options?: any): any;
+            };
+            comment: string;
             $assertPopulated: <Paths = {}>(path: string | string[], values?: Partial<Paths> | undefined) => Omit<import("../../schemas/review.schema").Review, keyof Paths> & Paths;
             $clearModifiedPaths: () => import("../../schemas/review.schema").Review;
             $clone: () => import("../../schemas/review.schema").Review;
@@ -164,12 +175,7 @@ export declare class SaloonController {
             directModifiedPaths: () => Array<string>;
             equals: (doc: import("mongoose").Document<unknown, any, any, Record<string, any>>) => boolean;
             errors?: import("mongoose").Error.ValidationError | undefined;
-            get: {
-                <T extends string | number | symbol>(path: T, type?: any, options?: any): any;
-                (path: string, type?: any, options?: any): any;
-            };
             getChanges: () => import("mongoose").UpdateQuery<import("../../schemas/review.schema").Review>;
-            id?: any;
             increment: () => import("../../schemas/review.schema").Review;
             init: (obj: import("mongoose").AnyObject, opts?: import("mongoose").AnyObject) => import("../../schemas/review.schema").Review;
             invalidate: {
@@ -226,12 +232,6 @@ export declare class SaloonController {
             replaceOne: (replacement?: import("mongoose").AnyObject, options?: import("mongoose").QueryOptions | null) => import("mongoose").Query<any, import("../../schemas/review.schema").Review, {}, unknown, "find", Record<string, never>>;
             save: (options?: import("mongoose").SaveOptions) => Promise<import("../../schemas/review.schema").Review>;
             schema: import("mongoose").Schema;
-            set: {
-                <T extends string | number | symbol>(path: T, val: any, type: any, options?: import("mongoose").DocumentSetOptions): import("../../schemas/review.schema").Review;
-                (path: string | Record<string, any>, val: any, type: any, options?: import("mongoose").DocumentSetOptions): import("../../schemas/review.schema").Review;
-                (path: string | Record<string, any>, val: any, options?: import("mongoose").DocumentSetOptions): import("../../schemas/review.schema").Review;
-                (value: string | Record<string, any>): import("../../schemas/review.schema").Review;
-            };
             toJSON: {
                 (options: import("mongoose").ToObjectOptions & {
                     virtuals: true;
@@ -300,11 +300,11 @@ export declare class SaloonController {
                 <T extends string | number | symbol>(pathsToValidate?: T | T[] | undefined, options?: import("mongoose").AnyObject): import("mongoose").Error.ValidationError | null;
                 (pathsToValidate?: import("mongoose").pathsToValidate, options?: import("mongoose").AnyObject): import("mongoose").Error.ValidationError | null;
             };
-            comment: string;
-            saloonId: import("mongoose").Types.ObjectId;
             userId: {
                 name: string;
             };
+            createdAt: Date;
+            updatedAt: Date;
             bookingId: import("mongoose").Types.ObjectId;
             rating: number;
             stylistRating: number;
