@@ -127,9 +127,20 @@ export declare class SaloonService {
         data: {
             customerName: string;
             stylistName: string;
-            createdAt: Date;
-            updatedAt: Date;
             _id: unknown;
+            saloonId: Types.ObjectId;
+            id?: any;
+            set: {
+                <T extends string | number | symbol>(path: T, val: any, type: any, options?: import("mongoose").DocumentSetOptions): Review;
+                (path: string | Record<string, any>, val: any, type: any, options?: import("mongoose").DocumentSetOptions): Review;
+                (path: string | Record<string, any>, val: any, options?: import("mongoose").DocumentSetOptions): Review;
+                (value: string | Record<string, any>): Review;
+            };
+            get: {
+                <T extends string | number | symbol>(path: T, type?: any, options?: any): any;
+                (path: string, type?: any, options?: any): any;
+            };
+            comment: string;
             $assertPopulated: <Paths = {}>(path: string | string[], values?: Partial<Paths> | undefined) => Omit<Review, keyof Paths> & Paths;
             $clearModifiedPaths: () => Review;
             $clone: () => Review;
@@ -169,12 +180,7 @@ export declare class SaloonService {
             directModifiedPaths: () => Array<string>;
             equals: (doc: import("mongoose").Document<unknown, any, any, Record<string, any>>) => boolean;
             errors?: import("mongoose").Error.ValidationError | undefined;
-            get: {
-                <T extends string | number | symbol>(path: T, type?: any, options?: any): any;
-                (path: string, type?: any, options?: any): any;
-            };
             getChanges: () => import("mongoose").UpdateQuery<Review>;
-            id?: any;
             increment: () => Review;
             init: (obj: import("mongoose").AnyObject, opts?: import("mongoose").AnyObject) => Review;
             invalidate: {
@@ -231,12 +237,6 @@ export declare class SaloonService {
             replaceOne: (replacement?: import("mongoose").AnyObject, options?: import("mongoose").QueryOptions | null) => import("mongoose").Query<any, Review, {}, unknown, "find", Record<string, never>>;
             save: (options?: import("mongoose").SaveOptions) => Promise<Review>;
             schema: import("mongoose").Schema;
-            set: {
-                <T extends string | number | symbol>(path: T, val: any, type: any, options?: import("mongoose").DocumentSetOptions): Review;
-                (path: string | Record<string, any>, val: any, type: any, options?: import("mongoose").DocumentSetOptions): Review;
-                (path: string | Record<string, any>, val: any, options?: import("mongoose").DocumentSetOptions): Review;
-                (value: string | Record<string, any>): Review;
-            };
             toJSON: {
                 (options: import("mongoose").ToObjectOptions & {
                     virtuals: true;
@@ -305,11 +305,11 @@ export declare class SaloonService {
                 <T extends string | number | symbol>(pathsToValidate?: T | T[] | undefined, options?: import("mongoose").AnyObject): import("mongoose").Error.ValidationError | null;
                 (pathsToValidate?: import("mongoose").pathsToValidate, options?: import("mongoose").AnyObject): import("mongoose").Error.ValidationError | null;
             };
-            comment: string;
-            saloonId: Types.ObjectId;
             userId: {
                 name: string;
             };
+            createdAt: Date;
+            updatedAt: Date;
             bookingId: Types.ObjectId;
             rating: number;
             stylistRating: number;

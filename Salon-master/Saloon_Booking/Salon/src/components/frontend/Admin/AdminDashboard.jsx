@@ -27,7 +27,7 @@ const AdminDashboard = () => {
   const fetchSalonRequests = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:8080/saloon/get-pending-saloons");
+      const response = await axios.get("http://localhost:8080/saloon/get-all-saloons");
       
       if (response.data?.data) {
         setSalonRequests(response.data.data);
@@ -102,10 +102,10 @@ const AdminDashboard = () => {
               <div key={salon._id} className="salon-card">
                 <h3>{salon.name}</h3>
                 <p>
-                  <strong>Owner:</strong> {salon.ownerName}
+                  <strong>Owner:</strong> {salon.owner.name}
                 </p>
                 <p>
-                  <strong>Email:</strong> {salon.email}
+                  <strong>Email:</strong> {salon.owner.email}
                 </p>
                 <p>
                   <strong>Location:</strong> {salon.city}, {salon.place}

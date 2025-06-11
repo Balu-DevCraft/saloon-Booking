@@ -20,7 +20,7 @@ export class SaloonController {
 
   @UseGuards(AccessTokenGuard)
   @Get('get-all-saloons')
-  async getAllSaloons(@Body() paginationDto: PaginationDto) {
+  async getAllSaloons(@Query() paginationDto: PaginationDto) {
     return this.saloonService.getAllSaloons(paginationDto);
   }
 
